@@ -81,25 +81,28 @@ class SQLConnection():
     def query(self, sql):
         if not self.quiet: console.log('Executing query...')
         
-        out = []
+        # out = []
 
-        CHUNK_SIZE = 10000
+        # CHUNK_SIZE = 10000
 
-        i = 0
+        # i = 0
 
-        while True:
-            data = pd.read_sql_query(sql + f' OFFSET {i*CHUNK_SIZE} FETCH NEXT {CHUNK_SIZE} ROWS ONLY', self.con)
-            out.append(data)
+        # while True:
 
-            if len(data) < CHUNK_SIZE:
-                break
+        #     SQL_OUT = sql + f' OFFSET {i*CHUNK_SIZE} FETCH NEXT {CHUNK_SIZE} ROWS ONLY'
 
-            i += 1
+        #     data = pd.read_sql_query(SQL_OUT, self.con)
+        #     out.append(data)
+
+        #     if len(data) < CHUNK_SIZE:
+        #         break
+
+        #     i += 1
 
 
-        data = pd.concat(out)
+        # data = pd.concat(out)
         
-        # data = pd.read_sql_query(sql, con=self.con)
+        data = pd.read_sql_query(sql, con=self.con)
         return data
 
     def __call__(self, sql, print=True):
