@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "squeal"
-version = "0.1.4"
+version = "0.1.5"
 description = "A simple utility to do SQL queries."
 authors = ["Adolph Vogel <ajvogel@gmail.com>"]
 readme = "README.md"
