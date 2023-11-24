@@ -4,6 +4,7 @@ import pathlib
 import tomllib
 import rich
 from rich import console as _console
+from rich.progress import track as _track
 import typer
 
 
@@ -45,9 +46,9 @@ def _dfToTable(df):
 
 
 class SQLConnection():
-    def __init__(self, config=None, logging=False):
+    def __init__(self, config=None, quiet=False):
         self.config = config
-        self.logging = logging
+        self.quiet = quiet
         self.con = None
 
     def loadDefaultConfig(self):
@@ -58,8 +59,16 @@ class SQLConnection():
         config2 = config['profiles'][defaultProfile]
         self.config = config2
 
+    def loadProfile(self, profile):
+        configDir = pathlib.Path('~/.config/squeal.toml').expanduser()
+        with open(configDir, 'rb') as fin:
+            config = tomllib.load(fin)
+        # defaultProfile = config['config']['default'] # 
+        config2 = config['profiles'][profile]
+        self.config = config2        
+
     def connect(self):
-        if self.logging: console.log('Connecting...')
+        if not self.quiet: console.log('Connecting...')
         if self.config is None:
             self.loadDefaultConfig()
         
@@ -70,8 +79,27 @@ class SQLConnection():
         return self
 
     def query(self, sql):
-        if self.logging: console.log('Executing query...')
-        data = pd.read_sql_query(sql, con=self.con)
+        if not self.quiet: console.log('Executing query...')
+        
+        out = []
+
+        CHUNK_SIZE = 10000
+
+        i = 0
+
+        while True:
+            data = pd.read_sql_query(sql + f' OFFSET {i*CHUNK_SIZE} FETCH NEXT {CHUNK_SIZE} ROWS ONLY', self.con)
+            out.append(data)
+
+            if len(data) < CHUNK_SIZE:
+                break
+
+            i += 1
+
+
+        data = pd.concat(out)
+        
+        # data = pd.read_sql_query(sql, con=self.con)
         return data
 
     def __call__(self, sql, print=True):
@@ -93,15 +121,19 @@ def query(
         config:pathlib.Path=typer.Option("~/.config/squeal.toml", help="The config file to use."),
         download:pathlib.Path=typer.Option(None,
                                            help="Where to download the results to. Supports csv and parquet."),
-        logging=typer.Option(True, help="Print out logging messages while executing.")):
+        quiet:bool=typer.Option(False, help="Print out logging messages while executing.")):
     """
     Executes an SQL query and prints the results to stdout.
     """
-    if ('select' not in sql.lower()) and ('.sql' not in sql.lower()):
+    if '.sql' in sql.lower():
+        console.log('Reading SQL file...')
         with open(sql,'r') as fin:
             sql = fin.read()
 
-    SQL.logging = logging
+    if profile is not None:
+        SQL.loadProfile(profile)
+
+    SQL.quiet = quiet
     SQL.connect()
     
     df = SQL.query(sql)
