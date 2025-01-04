@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "squeal"
-version = "0.1.5"
+version = "0.1.6"
 description = "A simple utility to do SQL queries."
 authors = ["Adolph Vogel <ajvogel@gmail.com>"]
 readme = "README.md"
@@ -14,9 +14,10 @@ pandas = "^2.1.0"
 rich = "^13.5.2"
 typer = "^0.9.0"
 sqlalchemy = "^2.0.20"
-pyodbc = "^4.0.39"
+#pyodbc = "^4.0.39"
 pyarrow = "^14.0.0"
 tqdm = "^4.66.1"
+pyodbc = "^5.2.0"
 
 [tool.poetry.scripts]
 squeal = "squeal.squeal:main"
